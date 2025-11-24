@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
+from typing import Any, Dict, List
 
 from .models import Genre, Actor, CinemaHall, Movie, MovieSession
 
@@ -18,7 +19,7 @@ class ActorSerializer(serializers.ModelSerializer):
         model = Actor
         fields = ("id", "first_name", "last_name", "full_name")
 
-    def get_full_name(self, obj):
+    def get_full_name(self, obj: Actor) -> str:
         return f"{obj.first_name} {obj.last_name}"
 
 
@@ -38,10 +39,10 @@ class MovieSerializer(serializers.ModelSerializer):
         model = Movie
         fields = ("id", "title", "description", "duration", "genres", "actors")
 
-    def get_genres(self, obj):
+    def get_genres(self, obj: Movie) -> List[str]:
         return [genre.name for genre in obj.genres.all()]
 
-    def get_actors(self, obj):
+    def get_actors(self, obj: Movie) -> List[str]:
         return [f"{actor.first_name} {actor.last_name}" for actor in obj.actors.all()]
 
 
@@ -66,17 +67,17 @@ class MovieRetrieveSerializer(serializers.ModelSerializer):
         fields = ("id", "title", "description", "duration",
                   "genres", "actors", "genres_ids", "actors_ids")
 
-    def validate_genres_ids(self, value):
+    def validate_genres_ids(self, value: List[Genre]) -> List[Genre]:
         if not value:
             raise serializers.ValidationError("At least one genre must be provided.")
         return value
 
-    def validate_actors_ids(self, value):
+    def validate_actors_ids(self, value: List[Actor]) -> List[Actor]:
         if not value:
             raise serializers.ValidationError("At least one actor must be provided.")
         return value
 
-    def create(self, validated_data):
+    def create(self, validated_data: Dict[str, Any]) -> Movie:
         genres = validated_data.pop("genres_ids", [])
         actors = validated_data.pop("actors_ids", [])
         movie = Movie.objects.create(**validated_data)
@@ -84,7 +85,7 @@ class MovieRetrieveSerializer(serializers.ModelSerializer):
         movie.actors.set(actors)
         return movie
 
-    def update(self, instance, validated_data):
+    def update(self, instance: Movie, validated_data: Dict[str, Any]) -> Movie:
         genres = validated_data.pop("genres_ids", None)
         actors = validated_data.pop("actors_ids", None)
 
@@ -131,14 +132,14 @@ class MovieSessionRetrieveSerializer(serializers.ModelSerializer):
     cinema_hall_id = serializers.PrimaryKeyRelatedField(
         queryset=CinemaHall.objects.all(),
         write_only=True,
-        required=False,
+        required=True,
         source="cinema_hall"
     )
 
     movie_id = serializers.PrimaryKeyRelatedField(
         queryset=Movie.objects.all(),
         write_only=True,
-        required=False,
+        required=True,
         source="movie"
     )
 
@@ -146,10 +147,8 @@ class MovieSessionRetrieveSerializer(serializers.ModelSerializer):
         model = MovieSession
         fields = ("id", "show_time", "movie", "cinema_hall", "cinema_hall_id", "movie_id")
 
-    def create(self, validated_data):
+    def create(self, validated_data: Dict[str, Any]) -> MovieSession:
         return super().create(validated_data)
 
-    def update(self, instance, validated_data):
-        return super().update(validated_data)
-
-
+    def update(self, instance: MovieSession, validated_data: Dict[str, Any]) -> MovieSession:
+        return super().update(instance, validated_data)
