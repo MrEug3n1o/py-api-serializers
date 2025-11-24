@@ -43,7 +43,10 @@ class MovieSerializer(serializers.ModelSerializer):
         return [genre.name for genre in obj.genres.all()]
 
     def get_actors(self, obj: Movie) -> List[str]:
-        return [f"{actor.first_name} {actor.last_name}" for actor in obj.actors.all()]
+        return [
+            f"{actor.first_name} {actor.last_name}"
+            for actor in obj.actors.all()
+        ]
 
 
 class MovieRetrieveSerializer(serializers.ModelSerializer):
@@ -69,12 +72,16 @@ class MovieRetrieveSerializer(serializers.ModelSerializer):
 
     def validate_genres_ids(self, value: List[Genre]) -> List[Genre]:
         if not value:
-            raise serializers.ValidationError("At least one genre must be provided.")
+            raise serializers.ValidationError(
+                "At least one genre must be provided."
+            )
         return value
 
     def validate_actors_ids(self, value: List[Actor]) -> List[Actor]:
         if not value:
-            raise serializers.ValidationError("At least one actor must be provided.")
+            raise serializers.ValidationError(
+                "At least one actor must be provided."
+            )
         return value
 
     def create(self, validated_data: Dict[str, Any]) -> Movie:
@@ -145,10 +152,21 @@ class MovieSessionRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MovieSession
-        fields = ("id", "show_time", "movie", "cinema_hall", "cinema_hall_id", "movie_id")
+        fields = (
+            "id",
+            "show_time",
+            "movie",
+            "cinema_hall",
+            "cinema_hall_id",
+            "movie_id"
+        )
 
     def create(self, validated_data: Dict[str, Any]) -> MovieSession:
         return super().create(validated_data)
 
-    def update(self, instance: MovieSession, validated_data: Dict[str, Any]) -> MovieSession:
+    def update(
+            self,
+            instance: MovieSession,
+            validated_data: Dict[str, Any]
+    ) -> MovieSession:
         return super().update(instance, validated_data)
